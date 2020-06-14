@@ -1,7 +1,7 @@
 package ratelimiter
 
 type rateLimiter interface {
-	AllowRequest(ip string) bool
-	Reset()
+	RequestAllowed(ip string) bool
+	ResetLimits()
 	Stop()
 }

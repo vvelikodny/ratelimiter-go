@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//
+// NewRateLimiterPerSecond creates instance of SimplePerSecondRateLimiter.
 func NewRateLimiterPerSecond(ctx context.Context, limit int) *SimplePerSecondRateLimiter {
 	rl := &SimplePerSecondRateLimiter{rateLimit: limit, requests: make(map[string]int)}
 
@@ -20,7 +20,7 @@ func NewRateLimiterPerSecond(ctx context.Context, limit int) *SimplePerSecondRat
 				rl.Stop()
 				return
 			case <-timer.C:
-				rl.Reset()
+				rl.ResetLimits()
 			}
 		}
 	}()
@@ -36,7 +36,8 @@ type SimplePerSecondRateLimiter struct {
 	rMux      sync.Mutex
 }
 
-func (rl *SimplePerSecondRateLimiter) AllowRequest(ip string) bool {
+// RequestAllowed checks if request from ip allowed according current limit per second.
+func (rl *SimplePerSecondRateLimiter) RequestAllowed(ip string) bool {
 	rl.rMux.Lock()
 	defer rl.rMux.Unlock()
 	count, ok := rl.requests[ip]
@@ -52,13 +53,15 @@ func (rl *SimplePerSecondRateLimiter) AllowRequest(ip string) bool {
 	return false
 }
 
-func (rl *SimplePerSecondRateLimiter) Reset() {
+// ResetLimits resets current limit counters.
+func (rl *SimplePerSecondRateLimiter) ResetLimits() {
 	rl.rMux.Lock()
 	defer rl.rMux.Unlock()
 	rl.requests = nil
 	rl.requests = make(map[string]int)
 }
 
+// ResetLimits cleans memory.
 func (rl *SimplePerSecondRateLimiter) Stop() {
 	rl.rMux.Lock()
 	defer rl.rMux.Unlock()
